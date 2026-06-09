@@ -2,7 +2,7 @@ replicaCount: 2
 
 image:
   repository: 676591241638.dkr.ecr.us-east-1.amazonaws.com/devsecops-demo-app
-  tag: 1bfee565c0e7312681405ba78c2d91394e75e6ec
+  tag: v1.0.0
   pullPolicy: IfNotPresent
 
 service:
