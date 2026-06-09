@@ -2,8 +2,9 @@ apiVersion: argoproj.io/v1alpha1
 kind: Rollout
 metadata:
   name: {{ include "devsecops-demo-app.fullname" . }}
+
 spec:
-  replicas: 2
+  replicas: {{ .Values.replicaCount }}
 
   selector:
     matchLabels:
@@ -13,12 +14,34 @@ spec:
     metadata:
       labels:
         app: devsecops-demo-app
+
     spec:
+      imagePullSecrets:
+        - name: ecr-secret
+
       containers:
         - name: devsecops-demo-app
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+
           ports:
-            - containerPort: 3000
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
 
   strategy:
     canary:
@@ -26,6 +49,9 @@ spec:
         - setWeight: 20
         - pause:
             duration: 30s
+
         - setWeight: 50
         - pause:
             duration: 30s
+
+        - setWeight: 100
